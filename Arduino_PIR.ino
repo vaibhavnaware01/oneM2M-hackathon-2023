@@ -9,6 +9,20 @@ const String Node_OFF="AC02OFF";
 const String Node_ON="AC02ON";
 const long interval = 1000;           // interval at which to blink (milliseconds)
 unsigned long previousMillis = 0;        // will store last time LED was updated
+#define timeSeconds 10
+const int motionSensor = 27;
+unsigned long now = millis();
+unsigned long lastTrigger = 0;
+boolean startTimer = false;
+boolean motion = false;
+
+void IRAM_ATTR detectsMovement()
+{
+  digitalWrite(led, HIGH);
+  startTimer = true;
+  lastTrigger = millis();
+}
+
 void setup()
 {
 delay(5000);
@@ -17,6 +31,12 @@ mySerial.begin(9600);
 mySerial.println("wisun connect");
 Serial.println("sending connect command");
 Serial.println(F("Initialize System"));
+  pinMode(motionSensor, INPUT_PULLUP);
+  // Set motionSensor pin as interrupt, assign interrupt function and set RISING mode
+  attachInterrupt(digitalPinToInterrupt(motionSensor), detectsMovement, RISING);
+  // Set LED to LOW
+  pinMode(led, OUTPUT);
+  digitalWrite(led, LOW);
 }
 void loop()
 {
@@ -47,21 +67,22 @@ Serial.println(data);
 mySerial.println("wisun socket_write 4 "+Node+"_to_"+data);  //connected device status
 }
 
-if (currentMillis - previousMillis >= interval) {
-    // save the last time you blinked the LED
-    previousMillis = currentMillis;
-
-    // if the LED is off turn it on and vice-versa:
-    if (ledState == LOW) {
-      ledState = HIGH;
-      mySerial.println("wisun socket_write 4 \""+Node+" is on\"");
-    } else {
-      ledState = LOW;
-      mySerial.println("wisun socket_write 4 \""+Node+" is off\"");
-
-    }
-    // set the LED with the ledState of the variable:
+now = millis();
+  if((digitalRead(led) == HIGH) && (motion == false)) {
+    Serial.println("MOTION DETECTED!!!");
+    motion = true;
   }
+  // Turn off the LED after the number of seconds defined in the timeSeconds variable
+  if(startTimer && (now - lastTrigger > (timeSeconds*1000))) {
+    Serial.println("Motion stopped...");
+    mySerial.println("wisun socket_write 4 "+Node+"_to_"+data);  //connected device status
+    startTimer = false;
+    motion = false;
+  }
+
+
+
+
 
 if (Serial.available()) 
 { 
