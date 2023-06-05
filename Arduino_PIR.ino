@@ -15,8 +15,9 @@ unsigned long now = millis();
 unsigned long lastTrigger = 0;
 boolean startTimer = false;
 boolean motion = false;
+const int led = 26;
 
-void IRAM_ATTR detectsMovement()
+void detectsMovement()
 {
   digitalWrite(led, HIGH);
   startTimer = true;
@@ -75,15 +76,10 @@ now = millis();
   // Turn off the LED after the number of seconds defined in the timeSeconds variable
   if(startTimer && (now - lastTrigger > (timeSeconds*1000))) {
     Serial.println("Motion stopped...");
-    mySerial.println("wisun socket_write 4 "+Node+"_to_"+data);  //connected device status
+    mySerial.println("wisun socket_write 4 "+Node+"_to_");  //connected device status
     startTimer = false;
     motion = false;
   }
-
-
-
-
-
 if (Serial.available()) 
 { 
 mySerial.write(Serial.read());
